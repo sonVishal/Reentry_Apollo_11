@@ -4,9 +4,9 @@ The Reentry problem for Apollo 11 type reentry vehicles.
 Based on the German version written by Prof. Folkmar Bornemann, TUM, WiSe 2002/2003
 for the lectures on Numerical Mathematics III.
 
-Reentry angle <=> Flight path angle 
+## Reentry angle <=> Flight path angle 
 
-Questions:
+## Questions:
 1. Change the critical point in the Maple script which restricts 'u' unnecessarily to the interval [-pi/2, pi/2]
    What is the condition of the minimum principle now?
 2. What will be the maneuver time and the value of J to get the
@@ -45,14 +45,14 @@ To (3)
 
     in reentry_bc.jl
 
-        r[2] = xa[5];
+        	′r[2] = xa[5]′;
 
     in reentry.jl
 
         before the solution of the optimal control problem,
         force natural boundary condition
 
-        x[5,1] = 0;
+        	′x[5,1] = 0′;
 
         A few more multiple shooting nodes will not hurt.
 
