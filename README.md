@@ -1,3 +1,4 @@
+$latex
 # Reentry_Apollo_11
 The Reentry problem for Apollo 11 type reentry vehicles.
 
@@ -23,7 +24,7 @@ If you think hard, no more than a handful of changes to the Maple script and Jul
 
 	`U [solve]: = arctan (-Lambda [2] * c [3], - lambda [1] * x [1] * c [2]):`
 
-    The Pontryagin's Mimimum principle is always satisfied for the second option as compared to the first, where it is never satisfied. So we choose the second option. This also eliminates the condition $$\lambda_1$$ < 0. How to choose now the useful starting values ​​for the adjoint variables?
+    The Pontryagin's Mimimum principle is always satisfied for the second option as compared to the first, where it is never satisfied. So we choose the second option. This also eliminates the condition \lambda_1 < 0. How to choose now the useful starting values ​​for the adjoint variables?
 
 2. The confirmation of the solution of the auxiliary problem to the control parameter u with values ​​in the range [-pi/2, pi/2] should be removed. The auxiliary problem should be solved with backward shooting method.
 
