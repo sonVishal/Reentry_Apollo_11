@@ -1,8 +1,9 @@
 # Reentry_Apollo_11
 The Reentry problem for Apollo 11 type reentry vehicles.
 
-Based on the German version written by Prof. Folkmar Bornemann, TUM, WiSe 2002/2003
-for the lectures on Numerical Mathematics III.
+Based on the German version written by Prof. Folkmar Bornemann, for the lectures on Numerical Mathematics III at TUM in Winter Semester 2002/2003.
+
+Read the Optimal_Control.pdf file for details.
 
 ##### Reentry angle <=> Flight path angle
 
