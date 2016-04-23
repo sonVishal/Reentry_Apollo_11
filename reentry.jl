@@ -1,7 +1,9 @@
-# Solution of the reentry problem for the Apollo capsule
-# by Stoer / Bulirsch 1973
+# solution of the reentry problem of an Apollo capsule
+# following Stoer/Bulirsch 1973
 
-# Import required modules
+# authors: Folkmar Bornemann, Vishal Sontakke, 2016/04/23
+
+# import required modules
 using ODEInterface
 @ODEInterface.import_huge
 
@@ -12,7 +14,7 @@ include("aux_bc.jl");
 include("showSolution.jl");
 include("multiplier_start.jl");
 
-# Parameters
+# parameters
 R    = 209.0;
 beta = 4.26;
 rho0 = 2.704e-3;
@@ -20,7 +22,7 @@ g    = 3.2172e-4;
 Sm   = 53200.0;
 c    = [1.174, 0.9, 0.6];
 
-# Boundary Conditions
+# boundary Conditions
 v0     = 0.36;
 v1     = 0.27;
 gamma0 = -8.1*pi/180;
@@ -31,53 +33,53 @@ h1     = 2.5/209;
 # bvpsol IVP solver
 odesolver = odex;
 
-# Tolerance
+# tolerance
 tol = 1e-8;
 
 function reentry(T0)
 
-	# Plotting parameters
+	# plotting parameters
 	global plotVar = Array{Gadfly.Plot}(8);
 
-	# Labels and titles for plotting
-	xAxis = "rel. maneuver time";
-	yAxis = ["[10<sup>5</sup> ft/sec]","[Degrees]","[10<sup>5</sup> ft]",
-		"[Degrees]","","","",""];
-	titles = ["Velocity (ν)","Flight-path angle (γ)",
-		"Height (ξ)","Control parameter (u)","adj. Var. λ<sub>ν</sub>",
-		"adj. Var. λ<sub>γ</sub>","adj. Var. λ<sub>ξ</sub>",
-		"Hamilton-func"];
+	# labels and titles for plotting
+	xAxis = "relative maneuver time";
+	yAxis = ["[10<sup>5</sup> ft/sec]","[degrees]","[10<sup>5</sup> ft]",
+		"[degrees]","","","",""];
+	titles = ["velocity v","flight-path angle γ",
+		"height ξ","trimming angle (control) u","adjoint variable λ<sub>ν</sub>",
+		"adjoint variable λ<sub>γ</sub>","adjoint variable λ<sub>ξ</sub>",
+		"Hamilton function"];
 
-	# Set up empty plots
+	# set up empty plots
 	for i = 1:8
 		plotVar[i] = plot(Guide.xlabel(xAxis,orientation=:horizontal),Guide.ylabel(yAxis[i]),
 		Guide.title(titles[i]),Guide.xticks(ticks=[0:0.2:1;]));
 	end
 
-	println("§§ Solution with T0 = $T0 §§");
+	println("§§ Solution with estimated duration T0 = $T0 §§");
 
   J_opt = -Inf;
   flag = 1;
 
   p = [1.0, 0.5];
 
-  # Forward Shooting
-  println("** Solution of the auxiliary problem, 1st attempt: Forward Shooting...");
+  # forward Shooting
+  println("** solution of the auxiliary problem, 1st attempt: forward shooting...");
   global dir = "forward";
   th  = [0.0, 1.0];
 
-  # Initial values of states = boundary values
+  # initial guesses of states = boundary values
   x = Matrix(6,2)
 
   x[1:3,1] = [v0; gamma0; h0];
   x[1:3,2] = [v1; gamma1; h1];
 
-  # Starting values of adjoint variables for the control during the maneuver
+  # initial guesses for the control profile and for the maneuver time
   x[4:6,1] = [p[1]; p[2]; T0];
   x[4:6,2] = x[4:6,1];
 
-  # Solver options
-	# IVP Solver options
+  # solver options
+	# IVP solver options
 	ivpopt = OptionsODE(OPT_RHS_CALLMODE => RHS_CALL_INSITU,
 	OPT_RTOL => tol, OPT_ATOL => tol);
 
@@ -90,32 +92,32 @@ function reentry(T0)
   (_,yh,retcode,_) = bvpsol(aux_f,aux_bc,th,x,odesolver,opt);
   elapsedTime = toq();
 
-  println(@sprintf "    CPU-time Boundary Value Solver = %3.1f sec" elapsedTime);
+  println(@sprintf "    CPU-time BVP solver = %3.1f sec" elapsedTime);
 
   if retcode > 0
       println("    # Newton-iterations = $retcode")
   end
 
-  p[1] = yh[4,1];   # Amplitude parameter for control u
-  p[2] = yh[5,1];   # Switching parameter for control u
-  T1   = yh[6,1];   # Maneuver time
+  p[1] = yh[4,1];   # amplitude of the control u
+  p[2] = yh[5,1];   # switching point of the control u
+  T1   = yh[6,1];   # maneuver time
 
   if retcode < 0
-      println("-- Termination of the BVP solver with error code $retcode")
+      println("-- termination of the BVP solver with error code $retcode")
       flag = 0;
   elseif p[1] <= 0 || p[1] >= 1 || p[2] <= 0 || p[2] >= 1
-      println("-- Solution is unusable: Incorrect control profile")
+      println("-- invalid solution: incorrect control profile")
       flag = 0;
   end
 
   if flag == 0
-      # Backward Shooting
-      println("** Solution of the auxiliary problem, 2nd attempt: Backward Shooting...");
+      # backward shooting
+      println("** solution of the auxiliary problem, 2nd attempt: backward shooting...");
       dir = "backward";
 
       x = x[:,end:-1:1];
 
-      # Solver options
+      # solver options
 			# IVP Solver options
 			ivpopt = OptionsODE(OPT_RHS_CALLMODE => RHS_CALL_INSITU,
 			OPT_RTOL => tol, OPT_ATOL => tol);
@@ -129,28 +131,29 @@ function reentry(T0)
       (_,yh,retcode,_) = bvpsol(aux_f,aux_bc,th,x,odesolver,opt);
       elapsedTime = toq();
 
-      println(@sprintf "    CPU-time Boundary Value Solver = %3.1f sec" elapsedTime);
+      println(@sprintf "    CPU-time BVP solver = %3.1f sec" elapsedTime);
 
       if retcode > 0
           println("    # Newton-iterations = $retcode")
       end
 
-      p[1] = yh[4,1];   # Amplitude parameter for the control
-      p[2] = yh[5,1];   # Switching point for the control
-      T1   = yh[6,1];   # Maneuver time
+      p[1] = yh[4,1];   # amplitude of the control
+      p[2] = yh[5,1];   # switching point of the control
+      T1   = yh[6,1];   # maneuver time
 
       if retcode < 0
-          println("-- Termination of the BVP solver with error code $retcode")
+          println("-- termination of the BVP solver with error code $retcode")
           return nothing
       elseif (p[1] <= 0 || p[1] >= pi/2 || p[2] <= 0 || p[2] >= 1)
-          println("-- Solution is unusable: Incorrect control profile")
+          println("-- invalid solution: incorrect control profile")
           return nothing
       end
   end
 
-  # Generating the initial values for the optimal control problem
-  println("** Calculation of starting trajectories for the optimal control problem...")
+  # generating the initial guesses for the optimal control problem
+  println("** calculation of initial guesses for the optimal control problem...")
 
+  # K equidistant nodes for multiple shooting method
   K = 4;
   t_msm = zeros(K);
   t_msm[:] = linspace(0,1,K);
@@ -161,7 +164,7 @@ function reentry(T0)
       t[:] = 1-t_msm[end:-1:1];
   end
 
-  # Solver options
+  # solver options
 	# IVP Solver options
 	ivpopt = OptionsODE(OPT_RHS_CALLMODE => RHS_CALL_INSITU,
 	OPT_RTOL => tol, OPT_ATOL => tol);
@@ -170,7 +173,7 @@ function reentry(T0)
   (t_0,x,retcode,_) = odecall(odesolver,aux_f,t,yh[:,1],ivpopt);
   elapsedTime = toq();
 
-  println(@sprintf "    CPU-time Boundary Value Solver = %3.1f sec" elapsedTime);
+  println(@sprintf "    CPU-time integrator = %3.1f sec" elapsedTime);
 
   x = x';
   if dir == "backward"
@@ -178,14 +181,14 @@ function reentry(T0)
       x = x[:,end:-1:1];
   end
 
-  # Restore separated linear boundary conditions
+  # restore separated linear boundary conditions
   if norm(x[1:3,1]-[v0; gamma0; h0])/norm([v0; gamma0; h0]) > 0.1 ||
   	norm(x[1:3,end]-[v1; gamma1; h1])/norm([v0; gamma0; h0]) > 0.1
-      println("-- Solution of the auxiliary problem unusable: more than 10% deviation in the boundary values")
+      println("-- invalid solution of the auxiliary problem: more than 10% deviation in the boundary values")
       return nothing
   else
-      println("++ Solution of the auxiliary problem will be used as the starting trajectory")
-      println(@sprintf "** Time of the auxiliary maneuver T = %5.2f sec" T1)
+      println("++ solution of the auxiliary problem will be used as the starting trajectory")
+      println(@sprintf "** time of the auxiliary maneuver T = %5.2f sec" T1)
   end
 
   x[1:3,1] = [v0; gamma0; h0];
@@ -201,12 +204,12 @@ function reentry(T0)
   x = [x[1:3,:]; lambda; T1*ones(K)'];
   x[isinf(x)] = 0.0;
 
-  # Solution of the optimal control problem with the multiple shooting method
-  println("** Solution of the optimal control problem...")
+  # solution of the optimal control problem with the multiple shooting method
+  println("** solution of the optimal control problem...")
 
-  # Calling bvpsol
-  # Solver options
-	# IVP Solver options
+  # calling bvpsol
+  # solver options
+	# IVP solver options
 	ivpopt = OptionsODE(OPT_RHS_CALLMODE => RHS_CALL_INSITU,
 	OPT_RTOL => tol, OPT_ATOL => tol);
 
@@ -219,12 +222,12 @@ function reentry(T0)
   (_,y,retcode,_) = bvpsol(reentry_f,reentry_bc,t_msm,x,odesolver,opt);
   elapsedTime = toq();
 
-  println(@sprintf "    CPU-time Boundary Value Solver = %3.1f sec" elapsedTime);
+  println(@sprintf "    CPU-time BVP solver = %3.1f sec" elapsedTime);
 
   if retcode > 0
-      println("    # Newton-Iterations = $retcode");
+      println("    # Newton-iterations = $retcode");
       T = y[7,1];
-      println(@sprintf "** Manuever time T = %5.2f" T);
+      println(@sprintf "** manuever time T = %5.2f" T);
 
       # Plot the optimal solution
       J_opt = showSolution(t_msm,y,T,false,false,colorant"#00FF00","");
@@ -237,12 +240,12 @@ function reentry(T0)
 
       saving = (J_aux-J_opt)/J_aux*100;
 
-      println(@sprintf "** Improved the cost functional by %3.1f%% compared to the auxiliary problem!" saving);
+      println(@sprintf "** improvement of cost functional by %3.1f%% compared to the auxiliary problem!" saving);
   else
-      println("-- Program terminated with error code $retcode");
+      println("-- program terminated with error code $retcode");
   end
 
-  println("The optimal heating J = $J_opt");
+  println(@sprintf "the optimal heating per unit area is J = %8.6f" J_opt);
 
   return nothing
 end

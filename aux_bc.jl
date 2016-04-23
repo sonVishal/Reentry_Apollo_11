@@ -1,5 +1,7 @@
-# Boundary conditions for the auxiliary problem
-# Reentry problem by Stoer / Bulirsch 1973
+# boundary conditions for the auxiliary problem of the reentry problem
+# following Stoer/Bulirsch 1973
+
+# authors: Folkmar Bornemann, Vishal Sontakke, 2016/04/23
 
 function aux_bc(xa,xb,r)
     if dir == "forward"

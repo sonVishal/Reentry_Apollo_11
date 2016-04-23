@@ -1,11 +1,14 @@
-# Graphics routine for the output of the state variables and Lagrange
-# Multipliers for the reentry problem by Stoer / Bulirsch 1973
+# graphics routine for the output of the state variables and Lagrange
+# multipliers for the reentry problem
+# following Stoer/Bulirsch 1973
 
-# Also suitable for representing the solution of the auxiliary problem with the
-# associated starting values for the Lagrange multiplier
+# also suitable for representing the solution of the auxiliary problem with the
+# associated initial guesses of the Lagrange multipliers
 
-# Output J is an approximation of the value of the functional to be minimized
-# along the given trajectory.
+# output J is an approximation of the value of the functional to be minimized
+# along the given trajectory
+
+# authors: Folkmar Bornemann, Vishal Sontakke, 2016/04/23
 
 using Gadfly
 include("utility.jl");
@@ -17,7 +20,7 @@ function showSolution(t,x,T,aux,plotFlag,color,fName)
 
     for j = 1:M-1
 
-      # Calculating the trajectories
+      # calculating the piecewise trajectories
 
       tSpan = Array{Float64}(K);
       tSpan[:] = linspace(t[j],t[j+1],K);
@@ -42,7 +45,7 @@ function showSolution(t,x,T,aux,plotFlag,color,fName)
             (xGrid[4:6,k],u[k]) = multiplier_start(tGrid[k],xGrid[:,k]);
         end
       else
-        # Solver options
+        # solver options
         opt = OptionsODE(OPT_RHS_CALLMODE => RHS_CALL_INSITU,
   			OPT_RTOL => tol, OPT_ATOL => tol);
         
@@ -51,7 +54,7 @@ function showSolution(t,x,T,aux,plotFlag,color,fName)
         xGrid = xGrid';
       end
 
-      # Evaluation of Phi, Hamilton function and control
+      # evaluation of Phi, Hamilton function and control
       H = zeros(tGrid);
       Phi = zeros(tGrid);
       u = zeros(tGrid);
@@ -59,16 +62,16 @@ function showSolution(t,x,T,aux,plotFlag,color,fName)
           (Phi[k],H[k],u[k]) = utility(xGrid[:,k]);
       end
 
-      # Trapezoidal rule for the approximation of functions in J unit time
+      # trapezoidal rule for the approximation of functions in J in unit time
       for k = 1:(length(tGrid)-1)
           J = J + 0.5*T*(tGrid[k+1]-tGrid[k])*(Phi[k]+Phi[k+1]);
       end
 
-      # Convert units
+      # convert units
       xGrid[2,:] = 180/pi*xGrid[2,:]; # Flight-path angle in Degrees
       xGrid[3,:] = R*xGrid[3,:];      # Height in 1e5 ft
 
-      # Plot the 3 state variables and the 3 Lagrange multipliers
+      # plot the 3 state variables and the 3 Lagrange multipliers
       lineWidth = 3pt;
 
       for k=1:6
@@ -76,11 +79,11 @@ function showSolution(t,x,T,aux,plotFlag,color,fName)
           	Geom.line,Theme(line_width = lineWidth,default_color=color)))
       end
 
-      # Plot the control
+      # plot the control
       push!(plotVar[4],layer(x=tGrid,y=180/pi*u,
       	Geom.line,Theme(line_width = lineWidth,default_color=color)));
 
-      # Plot the Hamilton-function
+      # plot the Hamilton-function
       push!(plotVar[8],layer(x=tGrid,y=H,
         Geom.line,Theme(line_width = lineWidth,default_color=color)));
     end
