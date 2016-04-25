@@ -1,11 +1,20 @@
-# Reentry_Apollo_11
+# The reentry problem: Apollo 11
 The reentry problem for Apollo 11 type space vehicles, following Stoer/Bulirsch 1973; see
 J. Stoer, R. Bulirsch, Introduction to Numerical Analysis, 3rd ed., Springer-Verlag, New York, §7.3.7 (pp. 565--572).
 
-Based on the German version written by Prof. Folkmar Bornemann, for the lectures on Numerical Mathematics III at Technical University of Munich in the winter term 2002/2003 using MATLAB and Mex-Interfaces to BVPSOL. Translation to English and Julia
-by Vishal Sontakke, April 2016.
+Based on the German version written by Prof. Folkmar Bornemann, for the lectures on Numerical Mathematics III at Technical University of Munich in the winter term 2002/2003 using MATLAB and Mex-Interfaces to BVPSOL. Translation to English and Julia by Vishal Sontakke, April 2016.
 
 Read the Optimal_Control.pdf file for details.
+
+Make sure you have the following packages installed:
+1. ODEInterface
+2. Gadfly
+3. Cairo
+
+To install a package simply type in
+```
+Pkg.add("ODEInterface")
+```
 
 #### Exercises:
 1. Change the passage in the Maple script which restricts the control 'u' unnecessarily to the interval [-pi/2, pi/2]. What is the condition of the minimum principle now?
