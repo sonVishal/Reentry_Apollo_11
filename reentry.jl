@@ -153,10 +153,10 @@ function reentry(T0)
   # generating the initial guesses for the optimal control problem
   println("** calculation of initial guesses for the optimal control problem...")
 
-  # K equidistant nodes for multiple shooting method
-  K = 4;
-  t_msm = zeros(K);
-  t_msm[:] = linspace(0,1,K);
+  # K nodes for multiple shooting method
+
+  t_msm = unique(collect([linspace(0,p[2],3);linspace(p[2],1,3)]));
+  K = length(t_msm);
   t = zeros(K);
   t[:] = t_msm;
 
@@ -165,12 +165,12 @@ function reentry(T0)
   end
 
   # solver options
-	# IVP Solver options
-	ivpopt = OptionsODE(OPT_RHS_CALLMODE => RHS_CALL_INSITU,
+  # IVP Solver options
+  ivpopt = OptionsODE(OPT_RHS_CALLMODE => RHS_CALL_INSITU,
 	OPT_RTOL => tol, OPT_ATOL => tol);
 
   tic();
-  (t_0,x,retcode,_) = odecall(odesolver,aux_f,t,yh[:,1],ivpopt);
+  (t,x,retcode,_) = odecall(odesolver,aux_f,t,yh[:,1],ivpopt);
   elapsedTime = toq();
 
   println(@sprintf "    CPU-time integrator = %3.1f sec" elapsedTime);
@@ -233,7 +233,7 @@ function reentry(T0)
       J_opt = showSolution(t_msm,y,T,false,false,colorant"#00FF00","");
 
       # Plot 0th iteration of the Multiple shooting method
-      showSolution(t_0,x,T0,false,false,colorant"#FF0000","");
+      showSolution(t,x,T0,false,false,colorant"#FF0000","");
 
       # Plot solution of auxiliary problem
       J_aux = showSolution(th,yh,T1,true,true,colorant"#0000FF",string("T0_",string(convert(Int64,T0)),".pdf"));
