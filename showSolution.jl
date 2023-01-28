@@ -11,6 +11,7 @@
 # authors: Folkmar Bornemann, Vishal Sontakke, 2016/04/23
 
 using Gadfly
+using Cairo, Fontconfig
 include("utility.jl");
 
 function showSolution(t,x,T,aux,plotFlag,color,fName)
@@ -22,8 +23,8 @@ function showSolution(t,x,T,aux,plotFlag,color,fName)
 
       # calculating the piecewise trajectories
 
-      tSpan = Array{Float64}(K);
-      tSpan[:] = linspace(t[j],t[j+1],K);
+      tSpan = Array{Float64}(undef, K);
+      tSpan[:] = range(t[j],t[j+1],K);
 
       if aux
       	# Solver options
@@ -37,10 +38,10 @@ function showSolution(t,x,T,aux,plotFlag,color,fName)
         xGrid = xGrid';
 
         if dir == "backward"
-            tGrid = 1-tGrid[end:-1:1];
+            tGrid = 1 .- tGrid[end:-1:1];
             xGrid = xGrid[:,end:-1:1,:];
         end
-        u = Array{Float64}(length(tGrid));
+        u = Array{Float64}(undef, length(tGrid));
         for k=1:length(tGrid)
             (xGrid[4:6,k],u[k]) = multiplier_start(tGrid[k],xGrid[:,k]);
         end
@@ -55,9 +56,9 @@ function showSolution(t,x,T,aux,plotFlag,color,fName)
       end
 
       # evaluation of Phi, Hamilton function and control
-      H = zeros(tGrid);
-      Phi = zeros(tGrid);
-      u = zeros(tGrid);
+      H = similar(tGrid);
+      Phi = similar(tGrid);
+      u = similar(tGrid);
       for k = 1:length(H)
           (Phi[k],H[k],u[k]) = utility(xGrid[:,k]);
       end

@@ -2,7 +2,7 @@
 
 function utility(x)
 
-    lambda = zeros(x[4:6]);
+    lambda = similar(x[4:6]);
     lambda[1] = x[4];
     lambda[2] = x[5];
     lambda[3] = x[6];

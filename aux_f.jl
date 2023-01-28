@@ -8,7 +8,7 @@ function aux_f(t,x,dx)
     if dir == "forward"
         aux_f_(t,x,dx);
     elseif dir == "backward"
-    	tmp = zeros(dx);
+    	tmp = similar(dx);
         aux_f_(1-t,x,tmp);
         dx[:] = -tmp;
     end

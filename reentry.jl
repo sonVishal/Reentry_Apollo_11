@@ -4,6 +4,8 @@
 # authors: Folkmar Bornemann, Vishal Sontakke, 2016/04/23
 
 # import required modules
+using Printf
+using LinearAlgebra
 using ODEInterface
 @ODEInterface.import_huge
 
@@ -43,7 +45,7 @@ tol = 1e-8;
 function reentry(T0)
 
     # plotting parameters
-    global plotVar = Array{Gadfly.Plot}(8);
+    global plotVar = Array{Gadfly.Plot}(undef, 8);
 
     # labels and titles for plotting
     xAxis = "relative maneuver time";
@@ -73,7 +75,7 @@ function reentry(T0)
     th  = [0.0, 1.0];
 
     # initial guesses of states = boundary values
-    x = Matrix(6,2)
+    x = Matrix(undef,6,2)
 
     x[1:3,1] = [v0; gamma0; h0];
     x[1:3,2] = [v1; gamma1; h1];
@@ -92,9 +94,7 @@ function reentry(T0)
     OPT_MAXSTEPS => 100, OPT_RTOL => tol, OPT_BVPCLASS => 3,
     OPT_SOLMETHOD => 0, OPT_IVPOPT => ivpopt);
 
-    tic();
-    (_,yh,retcode,_) = bvpsol(aux_f,aux_bc,th,x,odesolver,opt);
-    elapsedTime = toq();
+    elapsedTime = @elapsed (_,yh,retcode,_) = bvpsol(aux_f,aux_bc,th,x,odesolver,opt);
 
     println(@sprintf "    CPU-time BVP solver = %3.1f sec" elapsedTime);
 
@@ -131,9 +131,7 @@ function reentry(T0)
         OPT_MAXSTEPS => 100, OPT_RTOL => tol, OPT_BVPCLASS => 3,
         OPT_SOLMETHOD => 0, OPT_IVPOPT => ivpopt);
 
-        tic();
-        (_,yh,retcode,_) = bvpsol(aux_f,aux_bc,th,x,odesolver,opt);
-        elapsedTime = toq();
+        elapsedTime = @elapsed (_,yh,retcode,_) = bvpsol(aux_f,aux_bc,th,x,odesolver,opt);
 
         println(@sprintf "    CPU-time BVP solver = %3.1f sec" elapsedTime);
 
@@ -159,13 +157,13 @@ function reentry(T0)
 
     # K nodes for multiple shooting method
 
-    t_msm = unique(collect([linspace(0,p[2],3);linspace(p[2],1,3)]));
+    t_msm = unique(collect([range(0,p[2],3);range(p[2],1,3)]));
     K = length(t_msm);
     t = zeros(K);
     t[:] = t_msm;
 
     if dir == "backward"
-        t[:] = 1-t_msm[end:-1:1];
+        t[:] = 1 .- t_msm[end:-1:1];
     end
 
     # solver options
@@ -173,15 +171,13 @@ function reentry(T0)
     ivpopt = OptionsODE(OPT_RHS_CALLMODE => RHS_CALL_INSITU,
     OPT_RTOL => tol, OPT_ATOL => tol);
 
-    tic();
-    (t,x,retcode,_) = odecall(odesolver,aux_f,t,yh[:,1],ivpopt);
-    elapsedTime = toq();
+    elapsedTime = @elapsed (t,x,retcode,_) = odecall(odesolver,aux_f,t,yh[:,1],ivpopt);
 
     println(@sprintf "    CPU-time integrator = %3.1f sec" elapsedTime);
 
     x = x';
     if dir == "backward"
-        t = 1-t[end:-1:1];
+        t = 1 .- t[end:-1:1];
         x = x[:,end:-1:1];
     end
 
@@ -207,7 +203,7 @@ function reentry(T0)
     end
 
     x = [x[1:3,:]; lambda; T1*ones(K)'];
-    x[isinf(x)] = 0.0;
+    x[isinf.(x)] .= 0.0;
 
     # solution of the optimal control problem with the multiple shooting method
     println("** solution of the optimal control problem...")
@@ -223,9 +219,7 @@ function reentry(T0)
     OPT_MAXSTEPS => 100, OPT_RTOL => tol, OPT_BVPCLASS => 3,
     OPT_SOLMETHOD => 0, OPT_IVPOPT => ivpopt);
 
-    tic();
-    (_,y,retcode,_) = bvpsol(reentry_f,reentry_bc,t_msm,x,odesolver,opt);
-    elapsedTime = toq();
+    elapsedTime = @elapsed (_,y,retcode,_) = bvpsol(reentry_f,reentry_bc,t_msm,x,odesolver,opt);
 
     println(@sprintf "    CPU-time BVP solver = %3.1f sec" elapsedTime);
 
